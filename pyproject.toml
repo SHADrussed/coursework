@@ -15,7 +15,6 @@ dependencies = [
     "openpyxl (>=3.1.5,<4.0.0)"
 ]
 
-
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -25,7 +24,6 @@ flake8 = "^7.1.1"
 black = "^24.10.0"
 isort = "^5.13.2"
 mypy = "^1.14.1"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest-cov = "^6.0.0"
@@ -42,9 +40,7 @@ exclude = '.venv'
 package-mode = false
 
 [tool.black]
-# Максимальная длина строки
 line-length = 119
-# Файлы, которые не нужно форматировать
 exclude = '.git'
 
 [tool.isort]

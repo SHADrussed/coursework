@@ -1,21 +1,33 @@
 import datetime
 import json
 import os
+from typing import List, Dict
 
 import requests
 from src.transaction_reader import read_transactions_from_excel
-
 from dotenv import load_dotenv
+
 load_dotenv()
 
-# Load user settings once (assuming user_settings.json is in the project root)
-with open('../data/user_settings.json', 'r', encoding='utf-8') as f:
+# Определение директории данных относительно текущего файла
+DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
+
+# Загрузка настроек пользователя из файла user_settings.json в директории data
+with open(os.path.join(DATA_DIR, 'user_settings.json'), 'r', encoding='utf-8') as f:
     user_settings = json.load(f)
 
 
-# Greeting function
-def get_greet(date_n_time):
-    """Return a greeting based on the hour of the day."""
+# Функция для приветствия на основе времени суток
+def get_greet(date_n_time: str) -> str:
+    """
+    Возвращает приветствие на основе часа дня.
+
+    Args:
+        date_n_time (str): Дата и время в формате '%Y-%m-%d %H:%M:%S'.
+
+    Returns:
+        str: Приветствие.
+    """
     date_obj = datetime.datetime.strptime(date_n_time, "%Y-%m-%d %H:%M:%S")
     hour = date_obj.hour
     if 4 <= hour < 12:
@@ -28,32 +40,41 @@ def get_greet(date_n_time):
         return 'Доброй ночи'
 
 
-# Card summary function
-def get_cards(data, closing_date):
-    """Summarize card spending and cashback from transactions."""
+# Функция для подведения итогов по картам
+def get_cards(data: List[Dict], closing_date: datetime.datetime) -> List[Dict]:
+    """
+    Подводит итоги по тратам и кешбэку по картам из транзакций.
+
+    Args:
+        data (List[Dict]): Список транзакций.
+        closing_date (datetime.datetime): Дата закрытия периода.
+
+    Returns:
+        List[Dict]: Список словарей с итогами по картам.
+    """
     cards_dict = {}
     start_date = closing_date.replace(day=1)
 
     for tran in data:
-        # Skip if 'Дата платежа' is empty, or status is not 'OK'
+        # Пропускаем, если 'Дата платежа' пустая или статус не 'OK'
         if not tran['Дата платежа'] or tran['Статус'] != 'OK':
             continue
         try:
             tran_date = datetime.datetime.strptime(str(tran['Дата платежа']), "%d.%m.%Y")
         except ValueError:
-            continue  # Skip if date format is invalid
+            continue  # Пропускаем, если формат даты неверный
         if start_date <= tran_date <= closing_date:
             amount = tran['Сумма платежа']
-            if amount >= 0:  # Skip income transactions
+            if amount >= 0:  # Пропускаем доходные транзакции
                 continue
-            amount = -amount  # Convert expenses to positive
+            amount = -amount  # Преобразуем расходы в положительное число
             card_number = str(tran['Номер карты']).strip()
             if card_number and card_number != 'nan':
                 last_digits = card_number[-4:]
                 if last_digits not in cards_dict:
                     cards_dict[last_digits] = {'total_spent': 0, 'cashback': 0}
                 cards_dict[last_digits]['total_spent'] += amount
-                cards_dict[last_digits]['cashback'] += amount * 0.01  # 1% cashback
+                cards_dict[last_digits]['cashback'] += amount * 0.01  # 1% кешбэк
 
     return [
         {'last_digits': digits, 'total_spent': info['total_spent'], 'cashback': info['cashback']}
@@ -61,8 +82,18 @@ def get_cards(data, closing_date):
     ]
 
 
-# Top transactions function
-def get_top_transactions(data, closing_date):
+# Функция для получения топ-5 транзакций
+def get_top_transactions(data: List[Dict], closing_date: datetime.datetime) -> List[Dict]:
+    """
+    Возвращает топ-5 транзакций по сумме за период.
+
+    Args:
+        data (List[Dict]): Список транзакций.
+        closing_date (datetime.datetime): Дата закрытия периода.
+
+    Returns:
+        List[Dict]: Список топ-5 транзакций.
+    """
     start_date = closing_date.replace(day=1)
     transactions = [
         {
@@ -73,16 +104,24 @@ def get_top_transactions(data, closing_date):
         }
         for tran in data
         if isinstance(tran['Дата платежа'], str) and tran['Дата платежа'] and tran['Статус'] == 'OK'
-        and start_date <= datetime.datetime.strptime(tran['Дата платежа'], "%d.%m.%Y") <= closing_date
+           and start_date <= datetime.datetime.strptime(tran['Дата платежа'], "%d.%m.%Y") <= closing_date
     ]
     return sorted(transactions, key=lambda x: abs(x['amount']), reverse=True)[:5]
 
 
-# Currency rates function (example API)
-def get_currency_rates(currencies):
-    """Fetch currency exchange rates from an API."""
+# Функция для получения курсов валют
+def get_currency_rates(currencies: List[str]) -> List[Dict]:
+    """
+    Получает курсы обмена валют через API.
+
+    Args:
+        currencies (List[str]): Список валют для запроса.
+
+    Returns:
+        List[Dict]: Список словарей с курсами валют.
+    """
     try:
-        # Using a free API example (replace with your chosen API)
+        # Используем бесплатный API (замените на нужный)
         url = 'https://api.exchangerate-api.com/v4/latest/RUB'
         response = requests.get(url, timeout=5)
         response.raise_for_status()
@@ -93,16 +132,24 @@ def get_currency_rates(currencies):
         ]
         return rates
     except requests.RequestException as e:
-        print(f"Error fetching currency rates: {e}")
+        print(f"Ошибка получения курсов валют: {e}")
         return []
 
 
-# Stock prices function (example Hawkins example API)
-def get_stock_prices(stocks):
-    """Fetch stock prices from an API."""
+# Функция для получения цен акций
+def get_stock_prices(stocks: List[str]) -> List[Dict]:
+    """
+    Получает цены акций через API.
+
+    Args:
+        stocks (List[str]): Список тикеров акций.
+
+    Returns:
+        List[Dict]: Список словарей с ценами акций.
+    """
     try:
-        # Using Alpha Vantage as an example (requires API key in .env)
-        api_key = os.getenv("STOCK_API")  # Load from .env in production
+        # Используем Alpha Vantage (требуется API ключ в .env)
+        api_key = os.getenv("STOCK_API")
         url = 'https://www.alphavantage.co/query'
         prices = []
         for stock in stocks:
@@ -121,15 +168,25 @@ def get_stock_prices(stocks):
                 })
         return prices
     except requests.RequestException as e:
-        print(f"Error fetching stock prices: {e}")
+        print(f"Ошибка получения цен акций: {e}")
         return []
 
 
-# Main function
-def main_page(date_n_time, user_data=None):
-    """Generate JSON response for the main page."""
+# Основная функция для генерации JSON-ответа
+def main_page(date_n_time: str, user_data: Optional[List[Dict]] = None) -> Dict:
+    """
+    Генерирует JSON-ответ для главной страницы.
+
+    Args:
+        date_n_time (str): Дата и время в формате '%Y-%m-%d %H:%M:%S'.
+        user_data (Optional[List[Dict]]): Данные транзакций, если не None.
+
+    Returns:
+        Dict: JSON-ответ с данными.
+    """
     if user_data is None:
-        user_data = read_transactions_from_excel(r"D:\PythonProjects\Bank_Homework\data\operations.xlsx")
+        user_data_path = os.path.join(DATA_DIR, 'operations.xlsx')
+        user_data = read_transactions_from_excel(user_data_path)
 
     closing_date = datetime.datetime.strptime(date_n_time.split()[0], "%Y-%m-%d")
 
@@ -143,5 +200,6 @@ def main_page(date_n_time, user_data=None):
     return response
 
 
-result = main_page('2018-04-02 12:00:01')
-print(json.dumps(result, ensure_ascii=False, indent=2))
+if __name__ == "__main__":
+    result = main_page('2018-04-02 12:00:01')
+    print(json.dumps(result, ensure_ascii=False, indent=2))

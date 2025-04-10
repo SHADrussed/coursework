@@ -6,12 +6,20 @@ from typing import List, Dict, Tuple
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def filter_transactions_by_month(
-    transactions: List[Dict], year: int, month: int
+        transactions: List[Dict], year: int, month: int
 ) -> List[Dict]:
     """
     Фильтрует транзакции по заданному году и месяцу.
-    Использует функциональный подход с list comprehension.
+
+    Args:
+        transactions (List[Dict]): Список транзакций.
+        year (int): Год.
+        month (int): Месяц.
+
+    Returns:
+        List[Dict]: Отфильтрованные транзакции.
     """
     try:
         start_date = datetime.date(year, month, 1)
@@ -25,12 +33,20 @@ def filter_transactions_by_month(
         logger.error(f"Ошибка при фильтрации транзакций: {e}")
         return []
 
+
 def calculate_category_benefits(
-    transactions: List[Dict], standard_rate: float = 0.01, increased_rate: float = 0.05
+        transactions: List[Dict], standard_rate: float = 0.01, increased_rate: float = 0.05
 ) -> Dict[str, float]:
     """
     Вычисляет выгоду от повышенного кешбэка для каждой категории.
-    Использует reduce-подобный подход через словарь.
+
+    Args:
+        transactions (List[Dict]): Список транзакций.
+        standard_rate (float): Стандартная ставка кешбэка (по умолчанию 0.01).
+        increased_rate (float): Повышенная ставка кешбэка (по умолчанию 0.05).
+
+    Returns:
+        Dict[str, float]: Словарь с категориями и их выгодой.
     """
     # Группировка сумм по категориям с использованием словаря
     category_totals = {}
@@ -45,12 +61,20 @@ def calculate_category_benefits(
         for category, total in category_totals.items()
     }
 
+
 def analyze_cashback_categories(
-    transactions: List[Dict], year: int, month: int
+        transactions: List[Dict], year: int, month: int
 ) -> List[Tuple[str, float]]:
     """
     Анализирует, какие категории были бы наиболее выгодными для повышенного кешбэка.
-    Возвращает отсортированный список кортежей (категория, выгода).
+
+    Args:
+        transactions (List[Dict]): Список транзакций.
+        year (int): Год.
+        month (int): Месяц.
+
+    Returns:
+        List[Tuple[str, float]]: Отсортированный список кортежей (категория, выгода).
     """
     try:
         # Фильтрация транзакций

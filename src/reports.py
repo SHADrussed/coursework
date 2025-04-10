@@ -12,10 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 # Декоратор для записи результата в файл
-def log_to_file(filename: Optional[str] = None):
+def log_to_file(filename: Optional[str] = None) -> callable:
     """
     Декоратор для записи результата функции в файл.
     Если filename не указан, используется имя по умолчанию: report_YYYYMMDD_HHMMSS.csv.
+
+    Args:
+        filename (Optional[str]): Имя файла для сохранения отчета.
+
+    Returns:
+        callable: Декорированная функция.
     """
 
     def decorator(func):
@@ -46,12 +52,12 @@ def spending_by_category(
     """
     Возвращает траты по заданной категории за последние три месяца от указанной даты.
 
-    Аргументы:
+    Args:
         transactions (pd.DataFrame): Датафрейм с транзакциями.
         category (str): Название категории для фильтрации.
         date (Optional[str]): Дата в формате 'YYYY-MM-DD'. Если None, используется текущая дата.
 
-    Возвращает:
+    Returns:
         pd.DataFrame: Отфильтрованные траты по категории.
     """
     try:
@@ -86,7 +92,7 @@ def spending_by_category(
         return pd.DataFrame()
 
 
-# Пример использования
+# Пример использования (для тестирования)
 if __name__ == "__main__":
     # Пример датафрейма
     data = {

@@ -3,6 +3,9 @@ import pytest
 from src.reports import spending_by_category
 
 def test_spending_by_category_with_date():
+    """
+    Тестирует функцию spending_by_category с указанной датой.
+    """
     data = {
         'Дата операции': ['2025-01-15', '2025-02-20', '2025-03-10', '2025-04-01'],
         'Сумма платежа': [-100, -200, -150, -50],
@@ -14,6 +17,9 @@ def test_spending_by_category_with_date():
     assert result['Сумма платежа'].sum() == -300  # -100 + -150 + -50
 
 def test_spending_by_category_no_date():
+    """
+    Тестирует функцию spending_by_category без указания даты.
+    """
     data = {
         'Дата операции': ['2025-01-15', '2025-02-20'],
         'Сумма платежа': [-100, -200],
@@ -25,6 +31,9 @@ def test_spending_by_category_no_date():
     assert 'Транспорт' in result['Категория'].values
 
 def test_spending_by_category_invalid_date():
+    """
+    Тестирует функцию spending_by_category с неверной датой.
+    """
     data = {
         'Дата операции': ['2025-01-15'],
         'Сумма платежа': [-100],
