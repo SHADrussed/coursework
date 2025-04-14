@@ -7,6 +7,7 @@ from typing import List, Dict
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def read_transactions_from_excel(file_path: str) -> List[Dict[str, any]]:
     """
     Считывает транзакции из Excel-файла и возвращает список словарей.
@@ -19,20 +20,21 @@ def read_transactions_from_excel(file_path: str) -> List[Dict[str, any]]:
     """
     df = pd.read_excel(file_path)
     # Преобразуем 'Дата операции' в datetime с указанием формата
-    df['Дата операции'] = pd.to_datetime(df['Дата операции'], format='%d.%m.%Y %H:%M:%S', errors='coerce')
+    df["Дата операции"] = pd.to_datetime(df["Дата операции"], format="%d.%m.%Y %H:%M:%S", errors="coerce")
     # Преобразуем 'Дата платежа' в datetime с указанием формата
-    df['Дата платежа'] = pd.to_datetime(df['Дата платежа'], format='%d.%m.%Y', errors='coerce')
+    df["Дата платежа"] = pd.to_datetime(df["Дата платежа"], format="%d.%m.%Y", errors="coerce")
 
     # Логирование некорректных дат
-    invalid_ops = df[df['Дата операции'].isnull()]
+    invalid_ops = df[df["Дата операции"].isnull()]
     if not invalid_ops.empty:
         logger.warning(f"Некорректные 'Дата операции' в строках: {invalid_ops.index.tolist()}")
 
-    invalid_pays = df[df['Дата платежа'].isnull()]
+    invalid_pays = df[df["Дата платежа"].isnull()]
     if not invalid_pays.empty:
         logger.warning(f"Некорректные 'Дата платежа' в строках: {invalid_pays.index.tolist()}")
 
     return df.to_dict("records")
+
 
 def read_transactions_from_csv(path: str) -> List[Dict[str, str]]:
     """

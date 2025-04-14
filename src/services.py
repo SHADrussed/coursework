@@ -7,9 +7,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def filter_transactions_by_month(
-        transactions: List[Dict], year: int, month: int
-) -> List[Dict]:
+def filter_transactions_by_month(transactions: List[Dict], year: int, month: int) -> List[Dict]:
     """
     Фильтрует транзакции по заданному году и месяцу.
 
@@ -26,8 +24,9 @@ def filter_transactions_by_month(
         # Последний день месяца
         end_date = datetime.date(year, month % 12 + 1, 1) - datetime.timedelta(days=1)
         return [
-            tran for tran in transactions
-            if start_date <= datetime.datetime.strptime(tran['Дата операции'], "%d.%m.%Y").date() <= end_date
+            tran
+            for tran in transactions
+            if start_date <= datetime.datetime.strptime(tran["Дата операции"], "%d.%m.%Y").date() <= end_date
         ]
     except (ValueError, KeyError) as e:
         logger.error(f"Ошибка при фильтрации транзакций: {e}")
@@ -35,7 +34,7 @@ def filter_transactions_by_month(
 
 
 def calculate_category_benefits(
-        transactions: List[Dict], standard_rate: float = 0.01, increased_rate: float = 0.05
+    transactions: List[Dict], standard_rate: float = 0.01, increased_rate: float = 0.05
 ) -> Dict[str, float]:
     """
     Вычисляет выгоду от повышенного кешбэка для каждой категории.
@@ -51,20 +50,15 @@ def calculate_category_benefits(
     # Группировка сумм по категориям с использованием словаря
     category_totals = {}
     for tran in transactions:
-        category = tran['Категория']
-        amount = -tran['Сумма платежа']  # Отрицательные суммы — расходы
+        category = tran["Категория"]
+        amount = -tran["Сумма платежа"]  # Отрицательные суммы — расходы
         category_totals[category] = category_totals.get(category, 0) + amount
 
     # Вычисление выгоды для каждой категории
-    return {
-        category: total * (increased_rate - standard_rate)
-        for category, total in category_totals.items()
-    }
+    return {category: total * (increased_rate - standard_rate) for category, total in category_totals.items()}
 
 
-def analyze_cashback_categories(
-        transactions: List[Dict], year: int, month: int
-) -> List[Tuple[str, float]]:
+def analyze_cashback_categories(transactions: List[Dict], year: int, month: int) -> List[Tuple[str, float]]:
     """
     Анализирует, какие категории были бы наиболее выгодными для повышенного кешбэка.
 
@@ -89,11 +83,7 @@ def analyze_cashback_categories(
         benefits = calculate_category_benefits(filtered_transactions)
 
         # Сортировка категорий по убыванию выгоды с использованием sorted и lambda
-        sorted_categories = sorted(
-            benefits.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )
+        sorted_categories = sorted(benefits.items(), key=lambda x: x[1], reverse=True)
 
         logger.info(f"Топ категория: {sorted_categories[0][0]} с выгодой {sorted_categories[0][1]:.2f}")
         return sorted_categories

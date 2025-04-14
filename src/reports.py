@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Optional
@@ -44,11 +43,7 @@ def log_to_file(filename: Optional[str] = None) -> callable:
 
 # Функция для получения трат по категории
 @log_to_file()  # Используем декоратор без параметра (имя файла по умолчанию)
-def spending_by_category(
-        transactions: pd.DataFrame,
-        category: str,
-        date: Optional[str] = None
-) -> pd.DataFrame:
+def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame:
     """
     Возвращает траты по заданной категории за последние три месяца от указанной даты.
 
@@ -68,20 +63,22 @@ def spending_by_category(
         start_date = end_date - timedelta(days=90)
 
         # Преобразуем столбец 'Дата операции' в datetime, если он еще не в этом формате
-        if not pd.api.types.is_datetime64_any_dtype(transactions['Дата операции']):
-            transactions['Дата операции'] = pd.to_datetime(transactions['Дата операции'])
+        if not pd.api.types.is_datetime64_any_dtype(transactions["Дата операции"]):
+            transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"])
 
         # Фильтруем транзакции по дате и категории
         filtered_transactions = transactions[
-            (transactions['Дата операции'].dt.date >= start_date.date()) &
-            (transactions['Дата операции'].dt.date <= end_date.date()) &
-            (transactions['Категория'] == category)
-            ]
+            (transactions["Дата операции"].dt.date >= start_date.date())
+            & (transactions["Дата операции"].dt.date <= end_date.date())
+            & (transactions["Категория"] == category)
+        ]
 
         # Возвращаем только траты (отрицательные суммы)
-        spending = filtered_transactions[filtered_transactions['Сумма платежа'] < 0]
+        spending = filtered_transactions[filtered_transactions["Сумма платежа"] < 0]
 
-        logger.info(f"Отчет по категории '{category}' за период с {start_date.date()} по {end_date.date()} сформирован")
+        logger.info(
+            f"Отчет по категории '{category}' за период с {start_date.date()} по {end_date.date()} сформирован"
+        )
         return spending
 
     except ValueError as e:
@@ -96,18 +93,18 @@ def spending_by_category(
 if __name__ == "__main__":
     # Пример датафрейма
     data = {
-        'Дата операции': ['2025-01-15', '2025-02-20', '2025-03-10', '2025-04-01'],
-        'Сумма платежа': [-100, -200, -150, -50],
-        'Категория': ['Еда', 'Транспорт', 'Еда', 'Еда']
+        "Дата операции": ["2025-01-15", "2025-02-20", "2025-03-10", "2025-04-01"],
+        "Сумма платежа": [-100, -200, -150, -50],
+        "Категория": ["Еда", "Транспорт", "Еда", "Еда"],
     }
     df = pd.DataFrame(data)
 
     # Вызов с указанием даты
-    report = spending_by_category(df, 'Еда', '2025-04-02')
+    report = spending_by_category(df, "Еда", "2025-04-02")
     print("Отчет с указанной датой:")
     print(report)
 
     # Вызов без даты
-    report_current = spending_by_category(df, 'Транспорт')
+    report_current = spending_by_category(df, "Транспорт")
     print("\nОтчет с текущей датой:")
     print(report_current)
