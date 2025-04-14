@@ -1,16 +1,41 @@
-[project]
+[tool.poetry]
 name = "coursework"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "SHADrussed",email = "shad_rus_teaT@mail.ru"}
-]
+description = "My coursework project"
+authors = ["Michael Zakharov <shad_rus_teaT@mail.ru>"]
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-]
 
+[tool.poetry.dependencies]
+python-dotenv = "^1.0.1"
+requests = "^2.32.3"
+pandas = "^2.2.3"
+numpy = "^2.2.4"
+openpyxl = "^3.1.5"
+python = "^3.10"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.lint.dependencies]
+flake8 = "^7.1.1"
+black = "^24.10.0"
+isort = "^5.13.2"
+mypy = "^1.14.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^6.0.0"
+pytest = "^8.3.4"
+pandas = "2.2.3"
+
+[tool.mypy]
+disallow_untyped_defs = true
+warn_return_any = true
+exclude = ".venv"
+
+[tool.black]
+line-length = 119
+exclude = ".git"
+
+[tool.isort]
+line_length = 119
