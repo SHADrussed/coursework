@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 from src.reports import spending_by_category
 
 def test_spending_by_category_with_date():
